@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from datetime import UTC, datetime
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from app.agents.base import AgentInput
 from app.agents.planner import PlannerAgent
@@ -145,7 +145,7 @@ class WorkflowOrchestrator:
 
     @staticmethod
     def _failed_response(
-        run_id,
+        run_id: UUID,
         task: str,
         created_at: datetime,
         agent_results: list[AgentResult],
