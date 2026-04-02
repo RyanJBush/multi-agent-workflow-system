@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -52,7 +52,7 @@ class PlanOutput(BaseModel):
 
 class AgentResult(BaseModel):
     agent_name: str
-    status: str  # "success" | "failed"
+    status: Literal["success", "failed"]
     output: Any = None
     error: str | None = None
     duration_ms: int = 0
@@ -66,7 +66,7 @@ class AgentResult(BaseModel):
 class WorkflowResponse(BaseModel):
     id: UUID
     task: str
-    status: str  # "completed" | "failed"
+    status: Literal["completed", "failed"]
     summary: str = ""
     action_plan: list[ActionStep] = Field(default_factory=list)
     agent_results: list[AgentResult] = Field(default_factory=list)
@@ -83,6 +83,6 @@ class WorkflowResponse(BaseModel):
 class WorkflowSummary(BaseModel):
     id: UUID
     task: str
-    status: str
+    status: Literal["completed", "failed"]
     created_at: datetime
     completed_at: datetime | None = None

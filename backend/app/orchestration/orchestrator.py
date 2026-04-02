@@ -50,9 +50,15 @@ class WorkflowOrchestrator:
                     agent_name="research",
                     status=research_out.status,
                     output=research_findings.model_dump() if research_findings else None,
+                    error=research_out.error,
                     duration_ms=int((time.monotonic() - t0) * 1000),
                 )
             )
+            if research_out.status != "success":
+                return self._failed_response(
+                    run_id, task, created_at, agent_results,
+                    research_out.error or "Research agent did not succeed.",
+                )
         except Exception as exc:
             agent_results.append(
                 AgentResult(
@@ -81,9 +87,15 @@ class WorkflowOrchestrator:
                     agent_name="summarizer",
                     status=summarizer_out.status,
                     output=summary_output.model_dump() if summary_output else None,
+                    error=summarizer_out.error,
                     duration_ms=int((time.monotonic() - t0) * 1000),
                 )
             )
+            if summarizer_out.status != "success":
+                return self._failed_response(
+                    run_id, task, created_at, agent_results,
+                    summarizer_out.error or "Summarizer agent did not succeed.",
+                )
         except Exception as exc:
             agent_results.append(
                 AgentResult(
@@ -110,9 +122,15 @@ class WorkflowOrchestrator:
                     agent_name="planner",
                     status=planner_out.status,
                     output=plan_output.model_dump() if plan_output else None,
+                    error=planner_out.error,
                     duration_ms=int((time.monotonic() - t0) * 1000),
                 )
             )
+            if planner_out.status != "success":
+                return self._failed_response(
+                    run_id, task, created_at, agent_results,
+                    planner_out.error or "Planner agent did not succeed.",
+                )
         except Exception as exc:
             agent_results.append(
                 AgentResult(

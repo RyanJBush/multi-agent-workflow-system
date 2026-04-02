@@ -117,6 +117,7 @@ No framework magic — pure Python `async def` calls with `await`.
 ## 7. Config & Error Handling Strategy
 
 - All config is loaded from `.env` via `pydantic-settings` — typed and validated at startup.
-- FastAPI global exception handler returns `{ "detail": "..." }` JSON for all unhandled errors.
-- Agent errors are caught by the orchestrator; the run is marked `failed` and the error message is stored.
+- FastAPI's built-in exception handler returns `{ "detail": "..." }` JSON for validation and HTTP errors.
+- Agent errors are caught by the orchestrator in two ways: unhandled exceptions are caught by the `try/except` block, and non-success status values returned by an agent are checked explicitly — either path marks the run `failed` and stores the error message.
 - The frontend propagates HTTP errors to a visible error banner.
+- CORS is configured with `allow_origins=["*"]` for development. Credentials are not required — the frontend makes plain unauthenticated requests.
