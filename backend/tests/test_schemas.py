@@ -55,3 +55,47 @@ def test_agent_result_success():
 def test_agent_result_failed():
     r = AgentResult(agent_name="research", status="failed", error="timeout")
     assert r.error == "timeout"
+
+
+def test_workflow_request_too_long():
+    with pytest.raises(ValidationError):
+        WorkflowRequest(task="x" * 2001)
+
+
+def test_workflow_request_max_length():
+    req = WorkflowRequest(task="x" * 2000)
+    assert len(req.task) == 2000
+
+
+def test_workflow_request_min_length():
+    req = WorkflowRequest(task="hello")
+    assert len(req.task) == 5
+
+
+def test_action_step_defaults():
+    step = ActionStep(step=2, action="Do something")
+    assert step.step == 2
+    assert step.rationale == ""
+
+
+def test_plan_output_defaults():
+    plan = PlanOutput()
+    assert plan.steps == []
+    assert plan.estimated_duration == ""
+
+
+def test_research_findings_with_values():
+    findings = ResearchFindings(
+        key_facts=["fact1", "fact2"],
+        gaps=["gap1"],
+        sources=["src1"],
+        raw="raw text",
+    )
+    assert len(findings.key_facts) == 2
+    assert findings.raw == "raw text"
+
+
+def test_agent_result_duration_default():
+    r = AgentResult(agent_name="planner", status="success")
+    assert r.duration_ms == 0
+    assert r.output is None

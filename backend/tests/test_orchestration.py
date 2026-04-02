@@ -12,6 +12,20 @@ from app.orchestration.orchestrator import WorkflowOrchestrator
 from app.schemas.workflow import WorkflowRequest
 
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _raise(exc: Exception):
+    """Return an async callable that always raises *exc*."""
+
+    async def _fail(_input):
+        raise exc
+
+    return _fail
+
+
 @pytest.mark.asyncio
 async def test_research_agent_returns_findings():
     agent = ResearchAgent()
@@ -86,3 +100,91 @@ async def test_orchestrator_response_structure():
     for step in response.action_plan:
         assert step.step >= 1
         assert len(step.action) > 0
+
+
+# ---------------------------------------------------------------------------
+# Orchestrator failure paths (lines 56-65, 87-96, 116-125, 154)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_research_agent_failure(monkeypatch):
+    """An exception in the research stage marks the run as failed."""
+    orchestrator = WorkflowOrchestrator()
+    monkeypatch.setattr(orchestrator._research, "run", _raise(RuntimeError("research boom")))
+
+    response = await orchestrator.run(WorkflowRequest(task="Research failure test task"))
+
+    assert response.status == "failed"
+    assert response.error == "research boom"
+    assert len(response.agent_results) == 1
+    assert response.agent_results[0].agent_name == "research"
+    assert response.agent_results[0].status == "failed"
+    assert "research boom" in response.agent_results[0].error
+    assert response.completed_at is not None
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_summarizer_agent_failure(monkeypatch):
+    """An exception in the summarizer stage marks the run as failed."""
+    orchestrator = WorkflowOrchestrator()
+    monkeypatch.setattr(orchestrator._summarizer, "run", _raise(RuntimeError("summarizer boom")))
+
+    response = await orchestrator.run(WorkflowRequest(task="Summarizer failure test task"))
+
+    assert response.status == "failed"
+    assert response.error == "summarizer boom"
+    # Research succeeded, summarizer failed — two agent_results
+    assert len(response.agent_results) == 2
+    assert response.agent_results[0].agent_name == "research"
+    assert response.agent_results[0].status == "success"
+    assert response.agent_results[1].agent_name == "summarizer"
+    assert response.agent_results[1].status == "failed"
+    assert "summarizer boom" in response.agent_results[1].error
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_planner_agent_failure(monkeypatch):
+    """An exception in the planner stage marks the run as failed."""
+    orchestrator = WorkflowOrchestrator()
+    monkeypatch.setattr(orchestrator._planner, "run", _raise(RuntimeError("planner boom")))
+
+    response = await orchestrator.run(WorkflowRequest(task="Planner failure test task here"))
+
+    assert response.status == "failed"
+    assert response.error == "planner boom"
+    # Research + summarizer succeeded, planner failed — three agent_results
+    assert len(response.agent_results) == 3
+    assert response.agent_results[0].agent_name == "research"
+    assert response.agent_results[0].status == "success"
+    assert response.agent_results[1].agent_name == "summarizer"
+    assert response.agent_results[1].status == "success"
+    assert response.agent_results[2].agent_name == "planner"
+    assert response.agent_results[2].status == "failed"
+    assert "planner boom" in response.agent_results[2].error
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_failed_response_has_no_action_plan(monkeypatch):
+    """A failed run produces an empty action_plan and empty summary."""
+    orchestrator = WorkflowOrchestrator()
+    monkeypatch.setattr(orchestrator._research, "run", _raise(ValueError("oops")))
+
+    response = await orchestrator.run(WorkflowRequest(task="Check failed response fields ok"))
+
+    assert response.status == "failed"
+    assert response.action_plan == []
+    assert response.summary == ""
+    assert response.id is not None
+    assert response.task == "Check failed response fields ok"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_duration_ms_recorded_on_failure(monkeypatch):
+    """duration_ms on the failed agent result is a non-negative integer."""
+    orchestrator = WorkflowOrchestrator()
+    monkeypatch.setattr(orchestrator._research, "run", _raise(RuntimeError("timing test")))
+
+    response = await orchestrator.run(WorkflowRequest(task="Timing measurement failure test"))
+
+    assert response.agent_results[0].duration_ms >= 0
