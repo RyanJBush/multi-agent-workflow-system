@@ -72,6 +72,38 @@ async def test_orchestrator_full_pipeline():
 
 
 @pytest.mark.asyncio
+async def test_orchestrator_propagates_agent_status_failure(monkeypatch):
+    """An agent returning status='failed' without raising must stop the pipeline
+    and cause the run to be marked as failed — not completed."""
+    from app.agents.base import AgentOutput
+
+    async def _failing_summarizer(self, inp: AgentInput) -> AgentOutput:
+        return AgentOutput(
+            agent_name="summarizer",
+            status="failed",
+            error="Injected failure for testing",
+        )
+
+    monkeypatch.setattr(SummarizerAgent, "run", _failing_summarizer)
+
+    orchestrator = WorkflowOrchestrator()
+    response = await orchestrator.run(
+        WorkflowRequest(task="Test that a failed agent stops the pipeline")
+    )
+
+    # The whole run must be marked failed
+    assert response.status == "failed"
+    assert response.error is not None
+
+    # Pipeline must have stopped after the summarizer — planner must NOT have run
+    assert len(response.agent_results) == 2
+    assert response.agent_results[0].agent_name == "research"
+    assert response.agent_results[0].status == "success"
+    assert response.agent_results[1].agent_name == "summarizer"
+    assert response.agent_results[1].status == "failed"
+
+
+@pytest.mark.asyncio
 async def test_orchestrator_response_structure():
     orchestrator = WorkflowOrchestrator()
     response = await orchestrator.run(

@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AgentInput(BaseModel):
     task: str
-    context: dict[str, Any] = {}
+    context: dict[str, Any] = Field(default_factory=dict)
 
 
 class AgentOutput(BaseModel):
     agent_name: str
-    status: str = "success"  # "success" | "failed"
+    status: Literal["success", "failed"] = "success"
     data: Any = None
     error: str | None = None
 
