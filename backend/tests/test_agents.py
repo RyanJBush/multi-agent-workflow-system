@@ -252,7 +252,7 @@ def test_llm_stub_returns_string():
     from app.services.llm import LLMService
 
     llm = LLMService()
-    result = asyncio.get_event_loop().run_until_complete(llm.complete("hello"))
+    result = asyncio.run(llm.complete("hello"))
     assert isinstance(result, str)
     assert len(result) > 0
     assert "STUB_RESPONSE" in result
