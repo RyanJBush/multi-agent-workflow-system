@@ -1,4 +1,4 @@
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from app.core.exceptions import WorkflowError
@@ -13,7 +13,7 @@ class WorkflowService:
 
     def run_workflow(self, request: WorkflowRequest) -> WorkflowResult:
         run_id = uuid4()
-        created_at = datetime.now(UTC)
+        created_at = datetime.now(timezone.utc)
 
         try:
             summary, action_plan_payload, agent_results = self.orchestrator.run(request)
