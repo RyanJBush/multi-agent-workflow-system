@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Store the SQLite file inside the named volume so it persists across
+      # container restarts. This overrides the DATABASE_URL in .env.
+      - DATABASE_URL=sqlite+aiosqlite:///./data/workflows.db
+    volumes:
+      - db_data:/app/data
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # VITE_API_BASE_URL is baked into the JS bundle at build time and is
+        # resolved by the user's browser, not by the frontend container itself.
+        # Because port 8000 is published to the host, http://localhost:8000
+        # is reachable from any browser running on the same machine.
+        VITE_API_BASE_URL: http://localhost:8000
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  db_data:
