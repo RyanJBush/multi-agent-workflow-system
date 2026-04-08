@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import time
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 from app.agents.base import AgentInput
@@ -31,7 +31,7 @@ class WorkflowOrchestrator:
 
     async def run(self, request: WorkflowRequest) -> WorkflowResponse:
         run_id = uuid4()
-        created_at = datetime.now(UTC)
+        created_at = datetime.now(timezone.utc)
         agent_results: list[AgentResult] = []
         task = request.task
 
@@ -56,7 +56,10 @@ class WorkflowOrchestrator:
             )
             if research_out.status != "success":
                 return self._failed_response(
-                    run_id, task, created_at, agent_results,
+                    run_id,
+                    task,
+                    created_at,
+                    agent_results,
                     research_out.error or "Research agent did not succeed.",
                 )
         except Exception as exc:
@@ -93,7 +96,10 @@ class WorkflowOrchestrator:
             )
             if summarizer_out.status != "success":
                 return self._failed_response(
-                    run_id, task, created_at, agent_results,
+                    run_id,
+                    task,
+                    created_at,
+                    agent_results,
                     summarizer_out.error or "Summarizer agent did not succeed.",
                 )
         except Exception as exc:
@@ -128,7 +134,10 @@ class WorkflowOrchestrator:
             )
             if planner_out.status != "success":
                 return self._failed_response(
-                    run_id, task, created_at, agent_results,
+                    run_id,
+                    task,
+                    created_at,
+                    agent_results,
                     planner_out.error or "Planner agent did not succeed.",
                 )
         except Exception as exc:
@@ -156,7 +165,7 @@ class WorkflowOrchestrator:
             action_plan=action_plan,
             agent_results=agent_results,
             created_at=created_at,
-            completed_at=datetime.now(UTC),
+            completed_at=datetime.now(timezone.utc),
         )
 
     # ------------------------------------------------------------------
@@ -175,6 +184,6 @@ class WorkflowOrchestrator:
             status="failed",
             agent_results=agent_results,
             created_at=created_at,
-            completed_at=datetime.now(UTC),
+            completed_at=datetime.now(timezone.utc),
             error=error,
         )

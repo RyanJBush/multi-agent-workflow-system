@@ -12,7 +12,6 @@ from app.agents.research import ResearchAgent
 from app.agents.summarizer import SummarizerAgent
 from app.schemas.workflow import ResearchFindings, SummaryOutput
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -178,7 +177,9 @@ async def test_planner_parse_step_with_rationale():
     llm = _make_llm(raw)
     agent = PlannerAgent(llm=llm)
     output = await agent.run(
-        AgentInput(task="build a product", context={"summary": SummaryOutput(summary="test", word_count=1)})
+        AgentInput(
+            task="build a product", context={"summary": SummaryOutput(summary="test", word_count=1)}
+        )
     )
     assert output.status == "success"
     steps = output.data.steps

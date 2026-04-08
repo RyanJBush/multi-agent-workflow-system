@@ -54,3 +54,8 @@ export interface WorkflowSummary {
   created_at: string;
   completed_at: string | null;
 }
+
+export interface ApiError {
+  detail: string;
+  request_id?: string;
+}
