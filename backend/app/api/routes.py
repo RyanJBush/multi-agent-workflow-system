@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from app.db.repository import get_run, list_runs, save_run
 from app.db.session import get_db
@@ -26,7 +26,9 @@ async def run_workflow(request: WorkflowRequest) -> WorkflowResponse:
 
 
 @router.get("/history", response_model=list[WorkflowSummary])
-async def get_history(limit: int = 50) -> list[WorkflowSummary]:
+async def get_history(
+    limit: int = Query(default=50, ge=1, le=200, description="Maximum number of runs to return."),
+) -> list[WorkflowSummary]:
     """Return a list of past workflow run summaries."""
     db = await get_db()
     try:

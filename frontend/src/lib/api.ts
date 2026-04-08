@@ -1,16 +1,28 @@
-import type { WorkflowRequest, WorkflowResponse, WorkflowSummary } from "../types/workflow";
+import type {
+  ApiError,
+  WorkflowRequest,
+  WorkflowResponse,
+  WorkflowSummary,
+} from "../types/workflow";
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || "http://localhost:8000";
+
+function toMessage(error: ApiError, statusText: string): string {
+  const rid = error.request_id ? ` (request: ${error.request_id})` : "";
+  return `${error.detail || statusText}${rid}`;
+}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const resp = await fetch(`${BASE_URL}${path}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
+
   if (!resp.ok) {
-    const body = await resp.json().catch(() => ({ detail: resp.statusText }));
-    throw new Error(body.detail ?? "Request failed");
+    const body = (await resp.json().catch(() => ({ detail: resp.statusText }))) as ApiError;
+    throw new Error(toMessage(body, resp.statusText));
   }
+
   return resp.json() as Promise<T>;
 }
 

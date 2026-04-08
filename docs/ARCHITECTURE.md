@@ -121,3 +121,13 @@ No framework magic — pure Python `async def` calls with `await`.
 - Agent errors are caught by the orchestrator in two ways: unhandled exceptions are caught by the `try/except` block, and non-success status values returned by an agent are checked explicitly — either path marks the run `failed` and stores the error message.
 - The frontend propagates HTTP errors to a visible error banner.
 - CORS is configured with `allow_origins=["*"]` for development. Credentials are not required — the frontend makes plain unauthenticated requests.
+
+
+---
+
+## 8. Phase Artifacts
+
+- Phase 1 planning: `docs/PHASE_1_PLANNING.md`
+- Phase 2 architecture: `docs/PHASE_2_ARCHITECTURE.md`
+- API contract details: `docs/API_SPEC.md`
+- Phase 3 environment setup: `docs/PHASE_3_ENVIRONMENT_SETUP.md`

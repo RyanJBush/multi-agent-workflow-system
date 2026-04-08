@@ -60,8 +60,7 @@ export function FinalResultPanel({ result }: Props) {
 
       <p className="text-xs text-gray-400">
         Run ID: {result.id} · Started: {new Date(result.created_at).toLocaleString()}
-        {result.completed_at &&
-          ` · Completed: ${new Date(result.completed_at).toLocaleString()}`}
+        {result.completed_at && ` · Completed: ${new Date(result.completed_at).toLocaleString()}`}
       </p>
     </div>
   );

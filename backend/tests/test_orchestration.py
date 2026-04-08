@@ -11,7 +11,6 @@ from app.agents.summarizer import SummarizerAgent
 from app.orchestration.orchestrator import WorkflowOrchestrator
 from app.schemas.workflow import WorkflowRequest
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
